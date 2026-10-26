@@ -117,16 +117,54 @@ def get_model():
     return load_model()
 
 
+def current_n():
+    return HISTORY_CHOICES[st.session_state.get("history_label", "Last three words")]
+
+
+def run_suggest():
+    st.session_state["active"] = True
+    st.session_state["result"] = suggest_next(
+        get_model(),
+        st.session_state.get("sentence", ""),
+        n=current_n(),
+    )
+
+
+def stop_suggest():
+    st.session_state["active"] = False
+    st.session_state["result"] = None
+
+
 def append_word(word):
     current = st.session_state.get("sentence", "").strip()
     st.session_state["sentence"] = (current + " " + word).strip()
+    if st.session_state.get("active"):
+        run_suggest()
 
 
 st.set_page_config(page_title="Amharic next word", layout="centered")
+st.markdown(
+    """
+    <style>
+      .stApp { background: #f4f1ea; color: #1c1915; }
+      h1 { font-family: "Noto Sans Ethiopic", Nyala, sans-serif; }
+      .stTextArea textarea {
+        font-size: 1.25rem;
+        font-family: "Noto Sans Ethiopic", Nyala, sans-serif;
+      }
+      div[data-testid="stButton"] > button {
+        border-radius: 10px;
+        min-height: 2.8rem;
+      }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.title("Amharic next-word suggestions")
 st.write(
-    "Type the start of a sentence. Choose a suggestion to add that word and continue. "
-    "Typing only :: asks for words that start a new sentence."
+    "Type the start of a sentence, then press **Suggest**. "
+    "Click a word to add it. Press **Stop** when you want the list to go away."
 )
 
 model = get_model()
@@ -137,25 +175,34 @@ if model is None:
     )
     st.stop()
 
-if "sentence" not in st.session_state:
-    st.session_state["sentence"] = ""
+for key, value in (("sentence", ""), ("active", False), ("result", None)):
+    if key not in st.session_state:
+        st.session_state[key] = value
 
 st.text_area("Sentence", key="sentence", height=120, placeholder="ኢትዮጵያ ውስጥ የቡና")
-history_label = st.selectbox("History", list(HISTORY_CHOICES), index=0)
-n = HISTORY_CHOICES[history_label]
+st.selectbox("History", list(HISTORY_CHOICES), index=0, key="history_label")
 
-result = suggest_next(model, st.session_state["sentence"], n=n)
-st.caption(status_line(result))
+left, mid, right = st.columns(3)
+with left:
+    st.button("Suggest", type="primary", on_click=run_suggest, use_container_width=True)
+with mid:
+    st.button("Stop", on_click=stop_suggest, use_container_width=True)
+with right:
+    st.button("Clear", on_click=lambda: st.session_state.update(sentence="", result=None, active=False), use_container_width=True)
 
-if not result["suggestions"]:
+result = st.session_state.get("result") if st.session_state.get("active") else None
+if result is None:
+    st.caption("Press Suggest to see the next words. Press Stop to hide them.")
+elif not result["suggestions"]:
     st.info("No suggestion for this history.")
 else:
+    st.caption(status_line(result))
     for item in result["suggestions"]:
-        label = f"{item['word']}    P {item['probability']:.4f}"
         st.button(
-            label,
-            key=f"suggest-{item['word']}-{item['count']}",
+            f"{item['word']}    P {item['probability']:.4f}",
+            key=f"pick-{item['word']}-{item['count']}",
             on_click=append_word,
             args=(item["word"],),
             use_container_width=True,
         )
+
