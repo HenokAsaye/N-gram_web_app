@@ -50,9 +50,9 @@ def load_model(path=MODEL_PATH):
         return json.load(handle)
 
 
-def suggest_next(model, text, n=3, top=5):
+def suggest_next(model, text, n=4, top=5):
     words = words_of(text)
-    n = 3 if int(n) >= 3 else 2
+    n = max(2, min(4, int(n)))
     orders = model.get("orders", {})
     sentence_start = len(words) == 0
     for order in range(n, 1, -1):
@@ -167,7 +167,8 @@ PAGE = """<!DOCTYPE html>
   <div class="row">
     <label for="n">History</label>
     <select id="n">
-      <option value="3" selected>Last two words</option>
+      <option value="4" selected>Last three words</option>
+      <option value="3">Last two words</option>
       <option value="2">Last word</option>
     </select>
     <button class="primary" id="go" type="button">Suggest</button>
