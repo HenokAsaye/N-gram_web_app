@@ -211,7 +211,7 @@ else:
     st.caption(status_line(result))
     for item in result["suggestions"]:
         st.button(
-            f"{item['word']}    P {item['probability']:.4f}",
+            f"{item['word']}          {item['probability'] * 100:.2f}%",
             key=f"pick-{item['word']}-{item['count']}",
             on_click=append_word,
             args=(item["word"],),
