@@ -147,14 +147,26 @@ st.markdown(
     """
     <style>
       .stApp { background: #f4f1ea; color: #1c1915; }
-      h1 { font-family: "Noto Sans Ethiopic", Nyala, sans-serif; }
-      .stTextArea textarea {
-        font-size: 1.25rem;
+      h1, p, label, .stMarkdown, .stCaption { color: #1c1915 !important; }
+      .stTextArea textarea, [data-baseweb="select"] * {
+        color: #1c1915 !important;
+        background: #ffffff !important;
         font-family: "Noto Sans Ethiopic", Nyala, sans-serif;
       }
-      div[data-testid="stButton"] > button {
+      .stTextArea textarea { font-size: 1.25rem; }
+      div[data-testid="stButton"] button {
         border-radius: 10px;
         min-height: 2.8rem;
+        font-weight: 600;
+        color: #1c1915 !important;
+        background: #ffffff !important;
+        border: 1px solid #c9bfb2 !important;
+      }
+      div[data-testid="stButton"] button[kind="primary"],
+      div[data-testid="stButton"] button[data-testid="baseButton-primary"] {
+        color: #ffffff !important;
+        background: #8a3b12 !important;
+        border-color: #8a3b12 !important;
       }
     </style>
     """,
